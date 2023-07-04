@@ -8,10 +8,10 @@ app.use(express.json());
 // Set up Multer storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/");   // Define the destination folder for uploaded files
+    cb(null, "uploads/");   
   },
   filename: (req, file, cb) => {
-    cb(null, file.originalname);  // Use the original filename
+    cb(null, file.originalname);  
   },
 });
 
@@ -21,7 +21,7 @@ var upload = multer({
     fileSize: 2000000, //1 MB
   },
   fileFilter: function (req, file, cb) {
-    if (file.fieldname === "file") {
+    if (file.fieldname === "myFile") {
       if (
         file.mimetype === "image/png" ||
         file.mimetype === "image/jpg" ||
@@ -31,8 +31,7 @@ var upload = multer({
       } else {
         cb("Invalid format of file");
       }
-    }
-    else {
+    } else {
       cb("Unexpected error");
     }
   },
@@ -48,34 +47,35 @@ mongoose.connect("mongodb://127.0.0.1:27017/newMulter", {
 // Define a schema for your file documents
 const fileSchema = new mongoose.Schema(
   {
-      name: {
-        type: String,
-        required: true,
-      },
-      image: {
-        type: String,
-        required: true,
-      },
-      path: {
-        type: String
-      }
+    name: {
+      type: String,
+      required: true,
+    },
+    image: {
+      type: String,
+      required: true,
+    },
+    path: {
+      type: String,
+    },
   },
-    { timestamps: true },
-    { versionKey: false }
+  { timestamps: true, versionKey: false }
 );
 const File = mongoose.model("File", fileSchema);
+
+
 
 app.get("/register", (req, res) => {
   res.status(200).sendFile(__dirname + "/index.html");
 });
 
 // Handle file upload route
-app.post("/register", upload.single('file'), async (req, res) => {
+app.post("/register", upload.single("myFile"), async (req, res) => {
   try {
     // Create a new document for the uploaded file
     const file = new File({
       name: req.body.name,
-      image: req.file.originalname,
+      image: req.file.filename,
       path: req.file.path,
     });
 
@@ -86,11 +86,10 @@ app.post("/register", upload.single('file'), async (req, res) => {
       data: file,
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({ error: "An error occurred while uploading the file" });
+    res.status(500).json({ error: "An error occurred while uploading the file" });
   }
 });
+
 
 // Start the server
 app.listen(3000, () => {
